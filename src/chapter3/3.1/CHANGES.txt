@@ -1,0 +1,3 @@
+The prints were changed to python 3
+
+The string passed to load was made into a binary string

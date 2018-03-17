@@ -1,0 +1,3 @@
+Besides the print changes, the main changes were made in the my_debugger_defines CONTEXT structure and everything it used
+
+If you want to write the structure yourself, you have to search for a WinNT.h file in your computer and search for the CONTEXT structure there
