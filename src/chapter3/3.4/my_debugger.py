@@ -1,5 +1,6 @@
 from ctypes import *
 from my_debugger_defines import *
+from ctypes.wintypes import LPCSTR
 
 kernel32 = windll.kernel32
 
@@ -13,6 +14,66 @@ class Debugger():
         
         self.exception          = None
         self.exception_address  = None
+        
+        self.breakpoints        = {}
+        
+    def read_process_memory(self, address, length):
+        data = ""
+        read_buf = create_string_buffer(length)
+        count = c_ulong(0)
+        
+        if not kernel32.ReadProcessMemory(self.h_process,
+                                          address,
+                                          read_buf,
+                                          length,
+                                          byref(count)):
+            return False
+        else:
+            data += read_buf.raw
+            return data
+        
+    def write_process_memory(self, address, data):
+        count = c_ulong(0)
+        length = len(data)
+        
+        c_data = c_char_p(data[count.value:])
+        
+        return kernel32.WriteProcessMemory(self.h_process,
+                                           address,
+                                           c_data,
+                                           length,
+                                           byref(count))
+        
+    def bp_set(self, address):
+        if not address in self.breakpoints:
+            try:
+                # store the original byte
+                original_byte = self.read_process_memory(address, 1)
+                
+                # write the INT3 opcode
+                self.write_process_memory(address, b"\xcc")
+                
+                # register the breakpoint in our internal list
+                self.breakpoints[address] = original_byte
+            except:
+                return False
+        
+        return True
+        
+    def func_resolve(self, dll, function):
+        # We do this because types seem to be trunked to the first 32 bits,
+        # so we put 64 bit types
+        kernel32.GetModuleHandleA.restype = c_void_p
+        kernel32.GetProcAddress.argtypes = [c_void_p, c_char_p]
+        kernel32.GetProcAddress.restype = c_void_p
+        kernel32.CloseHandle.argtypes = [c_void_p]
+        
+        handle = kernel32.GetModuleHandleA(dll)
+        address = kernel32.GetProcAddress(handle, function)
+        
+        kernel32.CloseHandle(handle)
+        
+        return address
     
     def load(self, path_to_exe):
         

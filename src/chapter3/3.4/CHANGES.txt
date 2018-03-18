@@ -1,0 +1,1 @@
+Had to change the func_resolve method to stop pointers being trunked to 32 bits
