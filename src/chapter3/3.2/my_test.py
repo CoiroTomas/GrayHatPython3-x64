@@ -13,13 +13,13 @@ for thread in lst:
 
     # Now we output the registers
     print("[*] Dumping registers for thread ID: ", thread)
-    print("[*] RIP: ", thread_context.Rip)
-    print("[*] RSP: ", thread_context.Rsp)
-    print("[*] RBP: ", thread_context.Rbp)
-    print("[*] RAX: ", thread_context.Rax)
-    print("[*] RBX: ", thread_context.Rbx)
-    print("[*] RCX: ", thread_context.Rcx)
-    print("[*] RDX: ", thread_context.Rdx)
+    print("[*] RIP: 0x{0:X}".format(thread_context.Rip))
+    print("[*] RSP: 0x{0:X}".format(thread_context.Rsp))
+    print("[*] RBP: 0x{0:X}".format(thread_context.Rbp))
+    print("[*] RAX: 0x{0:X}".format(thread_context.Rax))
+    print("[*] RBX: 0x{0:X}".format(thread_context.Rbx))
+    print("[*] RCX: 0x{0:X}".format(thread_context.Rcx))
+    print("[*] RDX: 0x{0:X}".format(thread_context.Rdx))
     print("[*] END DUMP")
 
 debugger.detach()

@@ -150,7 +150,7 @@ class Debugger():
     
     def exception_handler_breakpoint(self):
         print("[*] Inside the breakpoint handler")
-        print("Exception Address: ", self.exception_address)
+        print("Exception Address: 0x{0:X}".format(self.exception_address))
         
         return DBG_CONTINUE
     
