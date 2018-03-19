@@ -1,6 +1,5 @@
 from ctypes import *
 from my_debugger_defines import *
-from ctypes.wintypes import LPCSTR
 
 kernel32 = windll.kernel32
 
@@ -18,10 +17,12 @@ class Debugger():
         self.breakpoints        = {}
         
     def read_process_memory(self, address, length):
-        data = ""
+        data = b""
         read_buf = create_string_buffer(length)
         count = c_ulong(0)
         
+        kernel32.ReadProcessMemory.argtypes = [c_ulong,
+                c_void_p, c_char_p, c_size_t, c_void_p]
         if not kernel32.ReadProcessMemory(self.h_process,
                                           address,
                                           read_buf,
@@ -38,6 +39,8 @@ class Debugger():
         
         c_data = c_char_p(data[count.value:])
         
+        kernel32.WriteProcessMemory.argtypes = [c_ulong,
+                c_void_p, c_char_p, c_size_t, c_void_p]
         return kernel32.WriteProcessMemory(self.h_process,
                                            address,
                                            c_data,
@@ -45,17 +48,19 @@ class Debugger():
                                            byref(count))
         
     def bp_set(self, address):
-        if not address in self.breakpoints:
+        if address not in self.breakpoints:
             try:
                 # store the original byte
                 original_byte = self.read_process_memory(address, 1)
-                
+
                 # write the INT3 opcode
-                self.write_process_memory(address, b"\xcc")
-                
+                self.write_process_memory(address, b"\xCC")
+
                 # register the breakpoint in our internal list
                 self.breakpoints[address] = original_byte
-            except:
+
+            except Exception as err:
+                print(err)
                 return False
         
         return True
@@ -162,7 +167,7 @@ class Debugger():
     
     def attach(self, pid):
         self.h_process = self.open_process(pid)
-        
+
         #We attempt to attach to the process
         #If this fails we exit the call
 
@@ -197,7 +202,8 @@ class Debugger():
                 if self.exception == EXCEPTION_ACCESS_VIOLATION:
                     print("Access Violation Detected")
                 elif self.exception == EXCEPTION_BREAKPOINT:
-                    continue_status = self.exception_handler_breakpoint()
+                    continue_status = self.exception_handler_breakpoint(
+                        self.open_thread(debug_event.dwThreadId))
                 elif self.exception == EXCEPTION_GUARD_PAGE:
                     print("Guard Page Access Detected")
                 elif self.exception == EXCEPTION_SINGLE_STEP:
@@ -208,9 +214,20 @@ class Debugger():
                 debug_event.dwThreadId,
                 continue_status)
     
-    def exception_handler_breakpoint(self):
+    def exception_handler_breakpoint(self, h_thread):
         print("[*] Inside the breakpoint handler")
         print("Exception Address: 0x{0:X}".format(self.exception_address))
+        
+        # This code does not appear in the book but I'm pretty sure it's necessary
+        # Otherwise the code continues with an Instruction Pointer 1 byte ahead
+        # and breaks everything
+        if self.exception_address in self.breakpoints:
+            self.write_process_memory(self.exception_address,
+                                      self.breakpoints[self.exception_address])
+            self.context.Rip = self.exception_address
+            kernel32.SetThreadContext(h_thread, byref(self.context))
+            kernel32.CloseHandle(h_thread)
+            del self.breakpoints[self.exception_address]
         
         return DBG_CONTINUE
     
