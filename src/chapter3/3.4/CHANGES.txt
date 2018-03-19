@@ -1,1 +1,5 @@
 Had to change the func_resolve method to stop pointers being trunked to 32 bits
+
+Had to change the Read and Write to process memory to stop pointers being trunked to 32 bits
+
+Had to change the breakpoint handler to return the breakpoint to its previous state
