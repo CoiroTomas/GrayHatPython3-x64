@@ -11,7 +11,7 @@ HANDLE    = c_void_p
 PVOID     = c_void_p
 LPVOID    = c_void_p
 UINT_PTR  = c_ulong
-SIZE_T    = c_ulong
+SIZE_T    = c_size_t
 
 class M128A(Structure):
     _fields_ = [
@@ -69,6 +69,12 @@ CONTEXT_ALL                    = CONTEXT_FULL | CONTEXT_SEGMENTS | CONTEXT_DEBUG
 
 # Memory permissions
 PAGE_EXECUTE_READWRITE         = 0x00000040
+
+# Hardware length of breakpoints
+HW_LEN_1 = 0x0
+HW_LEN_2 = 0x1
+HW_LEN_4 = 0x3
+HW_LEN_8 = 0x2
 
 # Hardware breakpoint conditions
 HW_ACCESS                      = 0x00000003
