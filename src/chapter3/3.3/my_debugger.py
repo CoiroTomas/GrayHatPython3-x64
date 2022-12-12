@@ -142,7 +142,7 @@ class Debugger():
                 elif self.exception == EXCEPTION_SINGLE_STEP:
                     print("Single Stepping")
             
-            kernel32.ContinueDebugEvent(
+        kernel32.ContinueDebugEvent(
                 debug_event.dwProcessId,
                 debug_event.dwThreadId,
                 continue_status)
